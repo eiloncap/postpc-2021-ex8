@@ -2,7 +2,6 @@ package il.co.rootsapp
 
 import java.io.Serializable
 import java.time.LocalDateTime
-import java.util.*
 
 data class RootItem(
     val num: Int,
@@ -16,7 +15,10 @@ data class RootItem(
         if (this == other) {
             return 0
         }
-        val res = other.creationDT.compareTo(this.creationDT)
-        return if (res == 0) -1 else res
+        if (isDone == other.isDone) {
+            val res = other.creationDT.compareTo(this.creationDT)
+            return if (res == 0) -1 else res
+        }
+        return if (isDone && !other.isDone) 1 else -1
     }
 }
