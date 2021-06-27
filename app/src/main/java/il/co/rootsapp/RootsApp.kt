@@ -1,6 +1,8 @@
 package il.co.rootsapp
 
 import android.app.Application
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 
 class RootsApp : Application() {
@@ -19,5 +21,12 @@ class RootsApp : Application() {
 
         instance = this
         viewModel = RootViewModel()
+    }
+
+    fun startRootsWorker(num: Long) {
+        val workRequest = OneTimeWorkRequest.Builder(RootCalculatorWorker::class.java)
+            .setInputData(Data.Builder().putLong(RootCalculatorWorker.INPUT_TAG, num).build())
+            .build()
+        WorkManager.getInstance(this).enqueue(workRequest)
     }
 }

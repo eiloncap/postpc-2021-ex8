@@ -13,6 +13,8 @@ class RootViewModel : Serializable {
     fun addNewItem(item: RootItem) {
         itemsList.add(item)
         // todo: call worker
+        RootsApp.instance.startRootsWorker(item.num)
+
     }
 
     fun cancelItem(item: RootItem) {
