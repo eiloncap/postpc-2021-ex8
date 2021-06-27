@@ -1,6 +1,8 @@
 package il.co.rootsapp
 
 import android.app.Application
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
@@ -9,6 +11,7 @@ import java.util.*
 class RootsApp : Application() {
 
     companion object {
+        const val SP_ROOT_ITEMS = "sp_roots"
         lateinit var instance: RootsApp
             private set
     }
@@ -16,12 +19,13 @@ class RootsApp : Application() {
     lateinit var db: RootsDB
         private set
     lateinit var workManager: WorkManager
+    lateinit var sp: SharedPreferences
 
     override fun onCreate() {
         super.onCreate()
-        workManager = WorkManager.getInstance(this)
-
         instance = this
+        workManager = WorkManager.getInstance(this)
+        sp = getSharedPreferences(SP_ROOT_ITEMS, Context.MODE_PRIVATE)
         db = RootsDB()
     }
 

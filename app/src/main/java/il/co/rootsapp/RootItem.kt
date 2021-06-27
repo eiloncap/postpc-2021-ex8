@@ -1,13 +1,12 @@
 package il.co.rootsapp
 
-import android.util.Log
 import java.io.Serializable
 import java.time.LocalDateTime
 import java.util.*
 
 data class RootItem(
     val num: Long,
-    // todo: lowerBound
+    var workerId: UUID,
     var lowerBound: Long = 2L,
     var root: Long = 1L,
     var progress: Int = 0,
@@ -33,5 +32,9 @@ data class RootItem(
 
     override fun hashCode(): Int {
         return num.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return this === other
     }
 }
