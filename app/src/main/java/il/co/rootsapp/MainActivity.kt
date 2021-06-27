@@ -61,4 +61,16 @@ class MainActivity : AppCompatActivity() {
             }
             .create()
     }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+//        outState.putString(INPUT_STATE, editTextInsertTask.text.toString())
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+//        editTextInsertTask.setText(savedInstanceState.getString(INPUT_STATE) as String)
+        adapter.setItems(RootsApp.instance.db.items)
+
+    }
 }

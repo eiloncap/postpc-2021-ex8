@@ -43,12 +43,8 @@ class RootsAdapter(
             description.text = "calculating roots for ${rootItem.num}..."
         }
 
-        deleteButton.setOnClickListener {
-            deleteCallback(rootItem)
-        }
-        cancelButton.setOnClickListener {
-            cancelCallback(rootItem)
-        }
+        deleteButton.setOnClickListener { deleteCallback(rootItem) }
+        cancelButton.setOnClickListener { cancelCallback(rootItem) }
         progressBar.progress = rootItem.progress
     }
 

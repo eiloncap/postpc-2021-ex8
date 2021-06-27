@@ -1,17 +1,19 @@
 package il.co.rootsapp
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.work.WorkInfo
 import java.io.Serializable
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 class RootsDB : Serializable {
 
-    private val itemsList = TreeSet<RootItem>()
+    private val itemsList = HashMap<RootItem, UUID>()
     val items: ArrayList<RootItem>
-        get() = ArrayList(itemsList)
+        get() = ArrayList(itemsList.keys.toSortedSet())
     private val mld: MutableLiveData<List<RootItem>> = MutableLiveData()
     val listLiveData: LiveData<List<RootItem>> = mld
 
@@ -21,9 +23,10 @@ class RootsDB : Serializable {
     }
 
     fun addNewItem(num: Long) {
+
         val id = RootsApp.instance.startRootsWorker(num)
-        val item = RootItem(workId = id, num = num)
-        itemsList.add(item)
+        val item = RootItem(num = num)
+        itemsList[item] = id
         RootsApp.instance.workManager.getWorkInfoByIdLiveData(id).observeForever { workInfo ->
             if (workInfo == null) return@observeForever
             when (workInfo.state) {
@@ -46,7 +49,7 @@ class RootsDB : Serializable {
     }
 
     fun cancelItem(item: RootItem) {
-        RootsApp.instance.cancelRootsWorker(item.workId)
+        RootsApp.instance.cancelRootsWorker(itemsList[item]!!)
         deleteItem(item)
     }
 
