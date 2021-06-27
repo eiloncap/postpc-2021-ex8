@@ -5,7 +5,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 
-class RootsAdapter : RecyclerView.Adapter<RootViewHolder>() {
+class RootsAdapter(
+    val deleteCallback: (RootItem) -> Unit,
+    val cancelCallback: (RootItem) -> Unit
+) : RecyclerView.Adapter<RootViewHolder>() {
 
     private val rootsList: MutableList<RootItem> = ArrayList()
 
@@ -22,7 +25,6 @@ class RootsAdapter : RecyclerView.Adapter<RootViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: RootViewHolder, position: Int) {
-        // todo: implement buttons
         val rootItem = rootsList[position]
         val progressBar = holder.progressBar
         val cancelButton = holder.cancelButton
@@ -39,6 +41,13 @@ class RootsAdapter : RecyclerView.Adapter<RootViewHolder>() {
             cancelButton.visibility = View.VISIBLE
             deleteButton.visibility = View.GONE
             description.text = "calculating roots for ${rootItem.num}..."
+        }
+
+        deleteButton.setOnClickListener {
+            deleteCallback(rootItem)
+        }
+        cancelButton.setOnClickListener {
+            cancelCallback(rootItem)
         }
         progressBar.progress = rootItem.progress
     }

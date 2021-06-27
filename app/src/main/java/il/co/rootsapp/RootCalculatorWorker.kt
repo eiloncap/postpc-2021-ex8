@@ -26,11 +26,9 @@ class RootCalculatorWorker(context: Context, workerParams: WorkerParameters) :
         for (i in 2L..upperBound) {
             setProgress(workDataOf(PROGRESS to (100 * i / upperBound).toInt()))
             if (numberToRoot % i == 0L) {
-                setProgress(workDataOf(PROGRESS to RootItem.DONE))
                 return Result.success(Data.Builder().putLong(OUTPUT_TAG, i).build())
             }
         }
-        setProgress(workDataOf(PROGRESS to RootItem.DONE))
         return Result.success(Data.Builder().putLong(OUTPUT_TAG, numberToRoot).build())
     }
 }

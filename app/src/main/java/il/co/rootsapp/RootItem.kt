@@ -2,9 +2,12 @@ package il.co.rootsapp
 
 import java.io.Serializable
 import java.time.LocalDateTime
+import java.util.*
 
 data class RootItem(
+    val workId: UUID,
     val num: Long,
+    // todo: lowerBound
     val lowerBound: Long = 0L,
     var root: Long = 1L,
     var progress: Int = 0,

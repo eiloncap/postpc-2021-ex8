@@ -11,14 +11,12 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : AppCompatActivity() {
 
-    var db: RootsDB? = null
     private lateinit var adapter: RootsAdapter
     private lateinit var rootsRecycleView: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        db = if (db == null) RootsApp.instance.viewModel else db
 
         val addButton = findViewById<FloatingActionButton>(R.id.addButton)
         rootsRecycleView = findViewById(R.id.rootsRecycleView)
@@ -32,11 +30,12 @@ class MainActivity : AppCompatActivity() {
             alert.show()
         }
 
-        db?.listLiveData?.observe(this) { list -> adapter.setItems(list) }
+        RootsApp.instance.db.listLiveData.observe(this) { list -> adapter.setItems(list) }
     }
 
+
     private fun initAdapter() {
-        adapter = RootsAdapter()
+        adapter = RootsAdapter(RootsApp.instance.db::deleteItem, RootsApp.instance.db::cancelItem)
         rootsRecycleView.adapter = adapter
     }
 
@@ -50,9 +49,9 @@ class MainActivity : AppCompatActivity() {
                 val numInput = v.findViewById<TextView>(R.id.numInput)
                 if (numInput.text.isNotEmpty()) {
                     val num = numInput.text.toString().toLong()
-                    // todo: handle 0 and 1 input
-                    db!!.addNewItem(num)
-                    adapter.setItems(db!!.items)
+                    // todo: handle 0 and 1 input?
+                    RootsApp.instance.db.addNewItem(num)
+                    adapter.setItems(RootsApp.instance.db.items)
                     numInput.text = ""
                 }
             }

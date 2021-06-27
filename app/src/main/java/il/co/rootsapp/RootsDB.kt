@@ -1,6 +1,5 @@
 package il.co.rootsapp
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.work.WorkInfo
@@ -22,21 +21,20 @@ class RootsDB : Serializable {
     }
 
     fun addNewItem(num: Long) {
-        val item = RootItem(num = num)
+        val id = RootsApp.instance.startRootsWorker(num)
+        val item = RootItem(workId = id, num = num)
         itemsList.add(item)
-        RootsApp.instance.startRootsWorker(item.num).observeForever { workInfo ->
+        RootsApp.instance.workManager.getWorkInfoByIdLiveData(id).observeForever { workInfo ->
             if (workInfo == null) return@observeForever
             when (workInfo.state) {
                 WorkInfo.State.SUCCEEDED -> {
                     item.progress = RootItem.DONE
-                    Log.d("eilon", "progress = ${item.progress}")
                     item.root = workInfo.outputData.getLong(RootCalculatorWorker.OUTPUT_TAG, num)
                     mld.value = items
                 }
                 WorkInfo.State.RUNNING -> {
                     item.progress = workInfo.progress.getInt(RootCalculatorWorker.PROGRESS, 0)
                     mld.value = items
-                    Log.d("eilon", "running progress = ${item.progress}")
                 }
                 WorkInfo.State.FAILED -> { // handle failure
                 }
@@ -48,11 +46,12 @@ class RootsDB : Serializable {
     }
 
     fun cancelItem(item: RootItem) {
-        itemsList.remove(item)
-        // todo: stop worker
+        RootsApp.instance.cancelRootsWorker(item.workId)
+        deleteItem(item)
     }
 
     fun deleteItem(item: RootItem) {
         itemsList.remove(item)
+        mld.value = items
     }
 }
