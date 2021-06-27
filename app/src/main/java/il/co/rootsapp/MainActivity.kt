@@ -11,14 +11,14 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : AppCompatActivity() {
 
-    var viewModel: RootViewModel? = null
+    var db: RootsDB? = null
     private lateinit var adapter: RootsAdapter
     private lateinit var rootsRecycleView: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        viewModel = if (viewModel == null) RootsApp.instance.viewModel else viewModel
+        db = if (db == null) RootsApp.instance.viewModel else db
 
         val addButton = findViewById<FloatingActionButton>(R.id.addButton)
         rootsRecycleView = findViewById(R.id.rootsRecycleView)
@@ -31,6 +31,8 @@ class MainActivity : AppCompatActivity() {
         addButton.setOnClickListener {
             alert.show()
         }
+
+        db?.listLiveData?.observe(this) { list -> adapter.setItems(list) }
     }
 
     private fun initAdapter() {
@@ -44,11 +46,15 @@ class MainActivity : AppCompatActivity() {
             .setMessage("Enter a number to calculate:")
             .setCancelable(true)
             .setView(v)
-            .setPositiveButton("OK") { dialog, id ->
+            .setPositiveButton("OK") { _, _ ->
                 val numInput = v.findViewById<TextView>(R.id.numInput)
                 if (numInput.text.isNotEmpty()) {
-                    viewModel!!.addNewItem(RootItem(num = numInput.text.toString().toInt()))
-                    adapter.setItems(viewModel!!.items)
+                    val num = numInput.text.toString().toLong()
+                    // todo: handle 0 and 1 input
+                    if (num > 0) {
+                        db!!.addNewItem(num)
+                        adapter.setItems(db!!.items)
+                    }
                     numInput.text = ""
                 }
             }

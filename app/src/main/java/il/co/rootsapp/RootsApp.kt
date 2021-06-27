@@ -1,8 +1,10 @@
 package il.co.rootsapp
 
 import android.app.Application
+import androidx.lifecycle.LiveData
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 
 class RootsApp : Application() {
@@ -12,7 +14,7 @@ class RootsApp : Application() {
             private set
     }
 
-    var viewModel: RootViewModel? = null
+    var viewModel: RootsDB? = null
         private set
 
     override fun onCreate() {
@@ -20,13 +22,17 @@ class RootsApp : Application() {
         val workManager = WorkManager.getInstance(this)
 
         instance = this
-        viewModel = RootViewModel()
+        viewModel = RootsDB()
     }
 
-    fun startRootsWorker(num: Long) {
+    fun startRootsWorker(num: Long): LiveData<WorkInfo> {
         val workRequest = OneTimeWorkRequest.Builder(RootCalculatorWorker::class.java)
             .setInputData(Data.Builder().putLong(RootCalculatorWorker.INPUT_TAG, num).build())
             .build()
-        WorkManager.getInstance(this).enqueue(workRequest)
+
+        val workManager = WorkManager.getInstance(this)
+        workManager.enqueue(workRequest)
+
+        return workManager.getWorkInfoByIdLiveData(workRequest.id)
     }
 }
