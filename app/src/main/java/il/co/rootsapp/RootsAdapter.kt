@@ -33,16 +33,14 @@ class RootsAdapter : RecyclerView.Adapter<RootViewHolder>() {
             cancelButton.visibility = View.GONE
             deleteButton.visibility = View.VISIBLE
             description.text =
-                if (rootItem.root1 == null || rootItem.root2 == null) "${rootItem.num} is prime"
-                else "roots for ${rootItem.num} are ${rootItem.root1} and ${rootItem.root2}"
-            progressBar.progress = 100
+                if (rootItem.root == rootItem.num) "${rootItem.num} is prime"
+                else "roots for ${rootItem.num} are ${rootItem.root} and ${rootItem.num / rootItem.root}"
         } else {
             cancelButton.visibility = View.VISIBLE
             deleteButton.visibility = View.GONE
             description.text = "calculating roots for ${rootItem.num}..."
-            // todo: get percent from worker
-            progressBar.progress = 100 * rootItem.lowerBound / rootItem.num
         }
+        progressBar.progress = rootItem.progress
     }
 
     override fun getItemCount(): Int {

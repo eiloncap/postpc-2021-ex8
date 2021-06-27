@@ -1,30 +1,36 @@
 package il.co.rootsapp
 
 import android.content.Context
+import androidx.work.CoroutineWorker
 import androidx.work.Data
-import androidx.work.Worker
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import kotlin.math.sqrt
 
 class RootCalculatorWorker(context: Context, workerParams: WorkerParameters) :
-    Worker(context, workerParams) {
+    CoroutineWorker(context, workerParams) {
 
     companion object {
-        const val NO_ROOT: Long = 0L
         const val INPUT_TAG = "number_to_root"
-        const val OUTPUT_TAG = "root1"
+        const val PROGRESS = "Progress"
+        const val OUTPUT_TAG = "root"
     }
 
-    override fun doWork(): Result {
+    override suspend fun doWork(): Result {
         val numberToRoot: Long = inputData.getLong(INPUT_TAG, -1L)
-        if (numberToRoot <= 0L) {
+        setProgress(workDataOf(PROGRESS to 0))
+        if (numberToRoot < 0L) {
             return Result.failure()
         }
-        for (i in 2L..sqrt(numberToRoot.toDouble()).toLong()) {
+        val upperBound = sqrt(numberToRoot.toDouble()).toLong()
+        for (i in 2L..upperBound) {
+            setProgress(workDataOf(PROGRESS to (100 * i / upperBound).toInt()))
             if (numberToRoot % i == 0L) {
+                setProgress(workDataOf(PROGRESS to RootItem.DONE))
                 return Result.success(Data.Builder().putLong(OUTPUT_TAG, i).build())
             }
         }
-        return Result.success(Data.Builder().putLong(OUTPUT_TAG, NO_ROOT).build())
+        setProgress(workDataOf(PROGRESS to RootItem.DONE))
+        return Result.success(Data.Builder().putLong(OUTPUT_TAG, numberToRoot).build())
     }
 }

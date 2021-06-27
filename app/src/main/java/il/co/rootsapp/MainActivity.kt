@@ -51,14 +51,15 @@ class MainActivity : AppCompatActivity() {
                 if (numInput.text.isNotEmpty()) {
                     val num = numInput.text.toString().toLong()
                     // todo: handle 0 and 1 input
-                    if (num > 0) {
-                        db!!.addNewItem(num)
-                        adapter.setItems(db!!.items)
-                    }
+                    db!!.addNewItem(num)
+                    adapter.setItems(db!!.items)
                     numInput.text = ""
                 }
             }
-            .setNegativeButton("CANCEL", null)
+            .setNegativeButton("CANCEL") { _, _ ->
+                val numInput = v.findViewById<TextView>(R.id.numInput)
+                numInput.text = ""
+            }
             .create()
     }
 }

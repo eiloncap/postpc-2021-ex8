@@ -1,8 +1,8 @@
 package il.co.rootsapp
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.work.Data
 import androidx.work.WorkInfo
 import java.io.Serializable
 import java.util.*
@@ -26,20 +26,22 @@ class RootsDB : Serializable {
         itemsList.add(item)
         RootsApp.instance.startRootsWorker(item.num).observeForever { workInfo ->
             if (workInfo == null) return@observeForever
-            else if (workInfo.state == WorkInfo.State.SUCCEEDED) {
-                val output = workInfo.outputData
-                item.isDone = true
-                val root1 = output.getLong(RootCalculatorWorker.OUTPUT_TAG, RootCalculatorWorker.NO_ROOT)
-                if (root1 != RootCalculatorWorker.NO_ROOT) {
-                    item.root1 = root1
-                    item.root2 = item.num / root1
+            when (workInfo.state) {
+                WorkInfo.State.SUCCEEDED -> {
+                    item.progress = RootItem.DONE
+                    Log.d("eilon", "progress = ${item.progress}")
+                    item.root = workInfo.outputData.getLong(RootCalculatorWorker.OUTPUT_TAG, num)
+                    mld.value = items
                 }
-            } else if (workInfo.state == WorkInfo.State.FAILED) {
-                val output = workInfo.outputData
-                // handle failure
-            } else {
-                // do nothing. state could be SUCCEEDED, FAILED, ENQUEUED, RUNNING, BLOCKED, or CANCELED
-
+                WorkInfo.State.RUNNING -> {
+                    item.progress = workInfo.progress.getInt(RootCalculatorWorker.PROGRESS, 0)
+                    mld.value = items
+                    Log.d("eilon", "running progress = ${item.progress}")
+                }
+                WorkInfo.State.FAILED -> { // handle failure
+                }
+                else -> { // do nothing. state could be SUCCEEDED, FAILED, ENQUEUED, RUNNING, BLOCKED, or CANCELED
+                }
             }
         }
 

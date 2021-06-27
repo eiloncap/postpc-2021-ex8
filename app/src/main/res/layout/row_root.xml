@@ -32,7 +32,7 @@
 
     <TextView
         android:id="@+id/descriptionText"
-        android:layout_width="wrap_content"
+        android:layout_width="336dp"
         android:layout_height="wrap_content"
         android:text="item text"
         android:layout_marginStart="16dp"

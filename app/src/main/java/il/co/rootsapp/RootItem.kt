@@ -6,11 +6,18 @@ import java.time.LocalDateTime
 data class RootItem(
     val num: Long,
     val lowerBound: Long = 0L,
-    var root1: Long? = null,
-    var root2: Long? = null,
-    var isDone: Boolean = false,
+    var root: Long = 1L,
+    var progress: Int = 0,
     private val creationDT: LocalDateTime = LocalDateTime.now()
 ) : Serializable, Comparable<RootItem> {
+
+    companion object {
+        const val DONE = 101
+    }
+
+    var isDone: Boolean = false
+        get() = this.progress >= DONE
+        private set
 
     override fun compareTo(other: RootItem): Int {
         if (this == other) {
