@@ -3,7 +3,6 @@ package il.co.rootsapp;
 import android.app.AlertDialog
 import android.app.Dialog
 import android.os.Bundle
-import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,15 +18,15 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        viewModel = if (viewModel == null) viewModel else RootsApp.instance.viewModel
+        viewModel = if (viewModel == null) RootsApp.instance.viewModel else viewModel
 
         val addButton = findViewById<FloatingActionButton>(R.id.addButton)
         rootsRecycleView = findViewById(R.id.rootsRecycleView)
 
+        initAdapter()
         val alert = initDialog()
 
         rootsRecycleView.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
-        initAdapter()
 
         addButton.setOnClickListener {
             alert.show()
@@ -47,9 +46,10 @@ class MainActivity : AppCompatActivity() {
             .setView(v)
             .setPositiveButton("OK") { dialog, id ->
                 val numInput = v.findViewById<TextView>(R.id.numInput)
-                Log.d("eilon", numInput.text.toString())
                 if (numInput.text.isNotEmpty()) {
-                    viewModel?.addNewItem(RootItem(num = numInput.text.toString().toInt()))
+                    viewModel!!.addNewItem(RootItem(num = numInput.text.toString().toInt()))
+                    adapter.setItems(viewModel!!.items)
+                    numInput.text = ""
                 }
             }
             .setNegativeButton("CANCEL", null)

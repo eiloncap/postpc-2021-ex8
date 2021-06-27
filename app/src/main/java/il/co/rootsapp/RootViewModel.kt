@@ -7,13 +7,17 @@ import kotlin.collections.ArrayList
 class RootViewModel : Serializable {
 
     private val itemsList = TreeSet<RootItem>()
-
-    fun getItems() : ArrayList<RootItem>{
-        return ArrayList(itemsList)
-    }
+    val items: ArrayList<RootItem>
+        get() = ArrayList(itemsList)
 
     fun addNewItem(item: RootItem) {
         itemsList.add(item)
+        // todo: call worker
+    }
+
+    fun cancelItem(item: RootItem) {
+        itemsList.remove(item)
+        // todo: stop worker
     }
 
     fun deleteItem(item: RootItem) {

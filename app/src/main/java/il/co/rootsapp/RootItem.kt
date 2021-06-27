@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 
 data class RootItem(
     val num: Int,
+    val lowerBound: Int = 0,
     val root1: Int? = null,
     val root2: Int? = null,
     var isDone: Boolean = false,
