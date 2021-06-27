@@ -25,8 +25,9 @@ class RootsApp : Application() {
         db = RootsDB()
     }
 
-    fun startRootsWorker(num: Long): UUID {
+    fun startRootsWorker(num: Long, startPoint: Long): UUID {
         val workRequest = OneTimeWorkRequest.Builder(RootCalculatorWorker::class.java)
+            .setInputData(Data.Builder().putLong(RootCalculatorWorker.INPUT_START_TAG, startPoint).build())
             .setInputData(Data.Builder().putLong(RootCalculatorWorker.INPUT_NUM_TAG, num).build())
             .build()
         workManager.enqueue(workRequest)
