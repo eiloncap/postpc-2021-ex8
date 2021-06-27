@@ -1,8 +1,8 @@
 package il.co.rootsapp
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 class RootsAdapter : RecyclerView.Adapter<RootViewHolder>() {
@@ -22,14 +22,27 @@ class RootsAdapter : RecyclerView.Adapter<RootViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: RootViewHolder, position: Int) {
-        // todo: general for all kind of items
-        val RootItem = rootsList[position]
+        // todo: implement buttons
+        val rootItem = rootsList[position]
         val progressBar = holder.progressBar
         val cancelButton = holder.cancelButton
         val deleteButton = holder.deleteButton
         val description = holder.description
-        description.text = RootItem.num.toString()
-        progressBar.progress = 0
+
+        if (rootItem.isDone) {
+            cancelButton.visibility = View.GONE
+            deleteButton.visibility = View.VISIBLE
+            description.text =
+                if (rootItem.root1 == null || rootItem.root2 == null) "${rootItem.num} is prime"
+                else "roots for ${rootItem.num} are ${rootItem.root1} and ${rootItem.root2}"
+            progressBar.progress = 100
+        } else {
+            cancelButton.visibility = View.VISIBLE
+            deleteButton.visibility = View.GONE
+            description.text = "calculating roots for ${rootItem.num}..."
+            // todo: get percent from worker
+            progressBar.progress = 100 * rootItem.lowerBound / rootItem.num
+        }
     }
 
     override fun getItemCount(): Int {

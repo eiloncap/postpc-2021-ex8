@@ -1,6 +1,7 @@
 package il.co.rootsapp
 
 import android.app.Application
+import androidx.work.WorkManager
 
 class RootsApp : Application() {
 
@@ -14,6 +15,7 @@ class RootsApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        val workManager = WorkManager.getInstance(this)
 
         instance = this
         viewModel = RootViewModel()
