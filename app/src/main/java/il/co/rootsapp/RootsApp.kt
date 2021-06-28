@@ -4,12 +4,13 @@ import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import androidx.work.Configuration
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 import java.util.*
 
-class RootsApp : Application() {
+class RootsApp : Application(), Configuration.Provider {
 
     companion object {
         const val SP_ROOT_ITEMS = "sp_roots"
@@ -22,11 +23,29 @@ class RootsApp : Application() {
     lateinit var workManager: WorkManager
     lateinit var sp: SharedPreferences
 
+    override fun getWorkManagerConfiguration() =
+        Configuration.Builder()
+            .setMinimumLoggingLevel(Log.INFO)
+            .build()
+
     override fun onCreate() {
         super.onCreate()
-        instance = this
-        workManager = WorkManager.getInstance(this)
+
+        // provide custom configuration
+        val myConfig = Configuration.Builder()
+            .setMinimumLoggingLevel(Log.INFO)
+            .build()
+
+        // initialize WorkManager
+        workManager = try {
+            WorkManager.getInstance(this)
+        } catch (e: Exception) {
+            WorkManager.initialize(this, myConfig)
+            WorkManager.getInstance(this)
+        }
+        
         workManager.cancelAllWork()
+        instance = this
         sp = getSharedPreferences(SP_ROOT_ITEMS, Context.MODE_PRIVATE)
         db = RootsDB()
     }

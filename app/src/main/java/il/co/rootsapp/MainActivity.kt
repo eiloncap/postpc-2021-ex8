@@ -12,31 +12,31 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 class MainActivity : AppCompatActivity() {
 
     private lateinit var adapter: RootsAdapter
-    private lateinit var rootsRecycleView: RecyclerView
+    lateinit var rootsRecycleView: RecyclerView
+        private set
+    private lateinit var app: RootsApp
+    lateinit var db: RootsDB
+        private set
+    lateinit var alert: Dialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        app = application as RootsApp
+        db = app.db
 
         val addButton = findViewById<FloatingActionButton>(R.id.addButton)
         rootsRecycleView = findViewById(R.id.rootsRecycleView)
-
-        initAdapter()
-        val alert = initDialog()
-
         rootsRecycleView.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
 
-        addButton.setOnClickListener {
-            alert.show()
-        }
-
-        RootsApp.instance.db.listLiveData.observe(this) { list -> adapter.setItems(list) }
-    }
-
-
-    private fun initAdapter() {
-        adapter = RootsAdapter(RootsApp.instance.db::deleteItem, RootsApp.instance.db::cancelItem)
+        adapter = RootsAdapter(db::deleteItem, db::cancelItem)
         rootsRecycleView.adapter = adapter
+        adapter.setItems(db.listLiveData.value)
+
+        alert = initDialog()
+
+        addButton.setOnClickListener { alert.show() }
+        db.listLiveData.observe(this) { list -> adapter.setItems(list) }
     }
 
     private fun initDialog(): Dialog {
@@ -49,9 +49,7 @@ class MainActivity : AppCompatActivity() {
                 val numInput = v.findViewById<TextView>(R.id.numInput)
                 if (numInput.text.isNotEmpty()) {
                     val num = numInput.text.toString().toLong()
-                    // todo: handle 0 and 1 input?
-                    RootsApp.instance.db.addNewItem(num)
-                    adapter.setItems(RootsApp.instance.db.listLiveData.value)
+                    db.addNewItem(num)
                     numInput.text = ""
                 }
             }
@@ -64,7 +62,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        adapter.setItems(RootsApp.instance.db.listLiveData.value)
+        adapter.setItems(db.listLiveData.value)
 
     }
 }

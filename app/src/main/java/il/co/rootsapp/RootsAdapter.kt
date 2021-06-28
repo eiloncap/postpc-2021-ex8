@@ -40,6 +40,7 @@ class RootsAdapter(
             if (deleteButton.visibility != View.VISIBLE) {
                 deleteButton.visibility = View.VISIBLE
             }
+            progressBar.visibility = View.GONE
             description.text =
                 if (rootItem.root == rootItem.num) "${rootItem.num} is prime"
                 else "roots for ${rootItem.num} are ${rootItem.root} and ${rootItem.num / rootItem.root}"
