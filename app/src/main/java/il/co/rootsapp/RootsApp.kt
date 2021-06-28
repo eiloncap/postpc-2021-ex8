@@ -26,6 +26,7 @@ class RootsApp : Application() {
         super.onCreate()
         instance = this
         workManager = WorkManager.getInstance(this)
+        workManager.cancelAllWork()
         sp = getSharedPreferences(SP_ROOT_ITEMS, Context.MODE_PRIVATE)
         db = RootsDB()
     }

@@ -12,10 +12,12 @@ class RootsAdapter(
 
     private val rootsList: MutableList<RootItem> = ArrayList()
 
-    fun setItems(newRootsList: List<RootItem>) {
-        rootsList.clear()
-        rootsList.addAll(newRootsList)
-        notifyDataSetChanged()
+    fun setItems(newRootsList: Collection<RootItem>?) {
+        if (newRootsList != null) {
+            rootsList.clear()
+            rootsList.addAll(newRootsList)
+            notifyDataSetChanged()
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RootViewHolder {
@@ -32,17 +34,25 @@ class RootsAdapter(
         val description = holder.description
 
         if (rootItem.isDone) {
-            cancelButton.visibility = View.GONE
-            deleteButton.visibility = View.VISIBLE
+            if (cancelButton.visibility != View.GONE) {
+                cancelButton.visibility = View.GONE
+            }
+            if (deleteButton.visibility != View.VISIBLE) {
+                deleteButton.visibility = View.VISIBLE
+            }
             description.text =
                 if (rootItem.root == rootItem.num) "${rootItem.num} is prime"
                 else "roots for ${rootItem.num} are ${rootItem.root} and ${rootItem.num / rootItem.root}"
         } else {
-            cancelButton.visibility = View.VISIBLE
-            deleteButton.visibility = View.GONE
+
+            if (cancelButton.visibility != View.VISIBLE) {
+                cancelButton.visibility = View.VISIBLE
+            }
+            if (deleteButton.visibility != View.GONE) {
+                deleteButton.visibility = View.GONE
+            }
             description.text = "calculating roots for ${rootItem.num}..."
         }
-
         deleteButton.setOnClickListener { deleteCallback(rootItem) }
         cancelButton.setOnClickListener { cancelCallback(rootItem) }
         progressBar.progress = rootItem.progress

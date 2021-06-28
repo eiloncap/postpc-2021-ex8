@@ -3,7 +3,6 @@ package il.co.rootsapp;
 import android.app.AlertDialog
 import android.app.Dialog
 import android.os.Bundle
-import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -52,7 +51,7 @@ class MainActivity : AppCompatActivity() {
                     val num = numInput.text.toString().toLong()
                     // todo: handle 0 and 1 input?
                     RootsApp.instance.db.addNewItem(num)
-                    adapter.setItems(RootsApp.instance.db.items)
+                    adapter.setItems(RootsApp.instance.db.listLiveData.value)
                     numInput.text = ""
                 }
             }
@@ -63,15 +62,9 @@ class MainActivity : AppCompatActivity() {
             .create()
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-//        outState.putString(INPUT_STATE, editTextInsertTask.text.toString())
-    }
-
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-//        editTextInsertTask.setText(savedInstanceState.getString(INPUT_STATE) as String)
-        adapter.setItems(RootsApp.instance.db.items)
+        adapter.setItems(RootsApp.instance.db.listLiveData.value)
 
     }
 }

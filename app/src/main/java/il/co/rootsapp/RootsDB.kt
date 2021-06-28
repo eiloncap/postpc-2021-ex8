@@ -3,6 +3,7 @@ package il.co.rootsapp
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.work.WorkInfo
 import com.google.gson.GsonBuilder
 import java.io.Serializable
@@ -11,72 +12,70 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-class RootsDB : Serializable {
+class RootsDB : ViewModel(), Serializable {
 
-    //todo: 1) order problems - solved?
-    //      2) not running problems - solved?
-    //      3) slow startup
-    //      4) duplicates - solved?
-    //      5) delete not responding - solved?
-
-    private val itemsList = TreeSet<RootItem>()
-    private val gson = GsonBuilder().registerTypeAdapter(
-        LocalDateTime::class.java, LocalDateTimeAdapter()
-    )
-        .create()
-    val items: ArrayList<RootItem>
-        get() = ArrayList(itemsList)
-    private val mld: MutableLiveData<List<RootItem>> = MutableLiveData()
-    val listLiveData: LiveData<List<RootItem>> = mld
+//    private val itemsList = TreeSet<RootItem>()
+    private val gson =
+        GsonBuilder().registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeAdapter())
+            .create()
+//    private val items: ArrayList<RootItem>
+//        get() = ArrayList(itemsList)
+    private val mld: MutableLiveData<TreeSet<RootItem>> = MutableLiveData(TreeSet<RootItem>())
+    val listLiveData: LiveData<TreeSet<RootItem>> = mld
 
 
     init {
         RootsApp.instance.sp.all.forEach { ser ->
             Log.d("eilon", "reading  ${ser.value as String}")
             val item = gson.fromJson(ser.value as String, RootItem::class.java)
-            itemsList.add(item)
-            // todo: check if work id is active
-            if (!RootsApp.instance.workManager.getWorkInfoById(item.workerId).isDone) {
-                RootsApp.instance.workManager.cancelWorkById(item.workerId)
-            }
             if (!item.isDone) {
+                Log.d("eilon", "initialized new worker for ${item.num}")
                 removeItemFromSp(item)
                 item.workerId = RootsApp.instance.startRootsWorker(item.num, item.lowerBound)
-                observeRootResults(item)
                 addUpdateItemToSp(item)
-
+                observeRootResults(item)
             }
+            mld.value?.add(item)
         }
-        mld.value = items
+        mld.value = mld.value
     }
 
     private fun observeRootResults(item: RootItem) {
-        // todo: if workerId exists, use it
         RootsApp.instance.workManager.getWorkInfoByIdLiveData(item.workerId)
             .observeForever { workInfo ->
                 if (workInfo == null) return@observeForever
                 when (workInfo.state) {
                     WorkInfo.State.SUCCEEDED -> {
-                        itemsList.remove(item)
+                        mld.value?.remove(item)
                         item.progress = RootItem.DONE
                         item.root =
                             workInfo.outputData.getLong(RootCalculatorWorker.OUTPUT_TAG, item.num)
-                        itemsList.add(item)
+                        mld.value?.add(item)
                         addUpdateItemToSp(item)
-                        mld.value = items
+                        mld.value = mld.value
                     }
                     WorkInfo.State.RUNNING -> {
-                        workInfo.progress.getInt(RootCalculatorWorker.PROGRESS, item.progress)
-                            .let { if (it > item.progress) item.progress = it}
-                        workInfo.progress.getLong(RootCalculatorWorker.LOWER_BOUND, item.lowerBound)
-                            .let { if (it > item.lowerBound) item.lowerBound = it}
-
+                        item.progress =
+                            workInfo.progress.getInt(RootCalculatorWorker.PROGRESS, item.progress)
+                        Log.d("eilon", "${item.num} progress = ${item.progress}")
+                        item.lowerBound = workInfo.progress.getLong(
+                            RootCalculatorWorker.LOWER_BOUND,
+                            item.lowerBound
+                        )
                         addUpdateItemToSp(item)
-                        mld.value = items
+                        mld.value = mld.value
                     }
-                    WorkInfo.State.FAILED -> { // handle failure
+                    WorkInfo.State.FAILED -> {
+                        item.lowerBound =
+                            workInfo.outputData.getLong(RootCalculatorWorker.OUTPUT_TAG, item.num)
+                        removeItemFromSp(item)
+                        RootsApp.instance.cancelRootsWorker(item.workerId)
+                        item.workerId =
+                            RootsApp.instance.startRootsWorker(item.num, item.lowerBound)
+                        addUpdateItemToSp(item)
+                        observeRootResults(item)
                     }
-                    else -> { // do nothing. state could be SUCCEEDED, FAILED, ENQUEUED, RUNNING, BLOCKED, or CANCELED
+                    else -> { // do nothing. state could be ENQUEUED, BLOCKED, or CANCELED
                     }
                 }
             }
@@ -85,20 +84,20 @@ class RootsDB : Serializable {
     fun addNewItem(num: Long) {
         val id = RootsApp.instance.startRootsWorker(num, 2L)
         val item = RootItem(num = num, workerId = id)
-        itemsList.add(item)
+        mld.value?.add(item)
+        mld.value = mld.value
         addUpdateItemToSp(item)
         observeRootResults(item)
-        mld.value = items
     }
 
     fun cancelItem(item: RootItem) {
-        RootsApp.instance.cancelRootsWorker(item.workerId)
         deleteItem(item)
+        RootsApp.instance.cancelRootsWorker(item.workerId)
     }
 
     fun deleteItem(item: RootItem) {
-        itemsList.remove(item)
-        mld.value = items
+        mld.value?.remove(item)
+        mld.value = mld.value
         removeItemFromSp(item)
     }
 

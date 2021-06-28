@@ -23,17 +23,21 @@ class RootCalculatorWorker(context: Context, workerParams: WorkerParameters) :
         val timeStartMs = System.currentTimeMillis()
         val numberToRoot: Long = inputData.getLong(INPUT_NUM_TAG, -1L)
         val startFrom: Long = inputData.getLong(INPUT_START_TAG, 2L)
-        Log.d("eilon", "started calculating $numberToRoot from $startFrom")
+        Log.d("eilon", "started calculating $numberToRoot from $startFrom, workerID = $id")
         if (numberToRoot < 0L) return Result.failure()
         val upperBound : Long = sqrt(numberToRoot.toDouble()).toLong()
         setProgress(workDataOf(PROGRESS to (100 * (startFrom - 2L) / (upperBound - 2L)).toInt()))
         var prog = 0
         for (i in startFrom..upperBound) {
-            val next = (100 * i / upperBound).toInt()
-            if ((next > prog) || (System.currentTimeMillis() - timeStartMs >= 600_000L)) {
-                setProgress(workDataOf(PROGRESS to (100 * (i - 2L) / (upperBound - 2L)).toInt()))
-                setProgress(workDataOf(LOWER_BOUND to i))
+            val next = (100 * (i - 2L) / (upperBound - 2L)).toInt()
+            if (next > prog) {
+                setProgress(workDataOf(PROGRESS to next, LOWER_BOUND to i))
+                Log.d("eilon", "$numberToRoot sent progress = $next instead of $prog")
                 prog = next
+            }
+            if (System.currentTimeMillis() - timeStartMs >= 600_000L) {
+//            if (System.currentTimeMillis() - timeStartMs >= 5_000L) {
+                return Result.failure(Data.Builder().putLong(OUTPUT_TAG, i).build())
             }
             if (numberToRoot % i == 0L) {
                 return Result.success(Data.Builder().putLong(OUTPUT_TAG, i).build())
