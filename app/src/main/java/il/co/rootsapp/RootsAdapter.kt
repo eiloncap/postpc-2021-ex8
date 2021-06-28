@@ -34,18 +34,18 @@ class RootsAdapter(
         val description = holder.description
 
         if (rootItem.isDone) {
+            progressBar.visibility = View.GONE
             if (cancelButton.visibility != View.GONE) {
                 cancelButton.visibility = View.GONE
             }
             if (deleteButton.visibility != View.VISIBLE) {
                 deleteButton.visibility = View.VISIBLE
             }
-            progressBar.visibility = View.GONE
             description.text =
                 if (rootItem.root == rootItem.num) "${rootItem.num} is prime"
                 else "roots for ${rootItem.num} are ${rootItem.root} and ${rootItem.num / rootItem.root}"
         } else {
-
+            progressBar.visibility = View.VISIBLE
             if (cancelButton.visibility != View.VISIBLE) {
                 cancelButton.visibility = View.VISIBLE
             }

@@ -43,7 +43,7 @@ class RootsApp : Application(), Configuration.Provider {
             WorkManager.initialize(this, myConfig)
             WorkManager.getInstance(this)
         }
-        
+
         workManager.cancelAllWork()
         instance = this
         sp = getSharedPreferences(SP_ROOT_ITEMS, Context.MODE_PRIVATE)
@@ -51,12 +51,13 @@ class RootsApp : Application(), Configuration.Provider {
     }
 
     fun startRootsWorker(num: Long, startPoint: Long): UUID {
-        Log.d("eilon", "startRootsWorker got params: $num, $startPoint")
         val workRequest = OneTimeWorkRequest.Builder(RootCalculatorWorker::class.java)
-            .setInputData(Data.Builder()
-                .putLong(RootCalculatorWorker.INPUT_START_TAG, startPoint)
-                .putLong(RootCalculatorWorker.INPUT_NUM_TAG, num)
-                .build())
+            .setInputData(
+                Data.Builder()
+                    .putLong(RootCalculatorWorker.INPUT_START_TAG, startPoint)
+                    .putLong(RootCalculatorWorker.INPUT_NUM_TAG, num)
+                    .build()
+            )
             .build()
         workManager.enqueue(workRequest)
         return workRequest.id
