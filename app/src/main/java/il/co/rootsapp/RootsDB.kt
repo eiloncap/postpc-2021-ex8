@@ -13,6 +13,12 @@ import kotlin.collections.ArrayList
 
 class RootsDB : Serializable {
 
+    //todo: 1) order problems - solved?
+    //      2) not running problems - solved?
+    //      3) slow startup
+    //      4) duplicates - solved?
+    //      5) delete not responding - solved?
+
     private val itemsList = TreeSet<RootItem>()
     private val gson = GsonBuilder().registerTypeAdapter(
         LocalDateTime::class.java, LocalDateTimeAdapter()
@@ -26,37 +32,46 @@ class RootsDB : Serializable {
 
     init {
         RootsApp.instance.sp.all.forEach { ser ->
-            Log.d("eilon", "jsoneditemB = ${ser.value as String}")
+            Log.d("eilon", "reading  ${ser.value as String}")
             val item = gson.fromJson(ser.value as String, RootItem::class.java)
             itemsList.add(item)
-            // todo: check serialization of date
+            // todo: check if work id is active
+            if (!RootsApp.instance.workManager.getWorkInfoById(item.workerId).isDone) {
+                RootsApp.instance.workManager.cancelWorkById(item.workerId)
+            }
             if (!item.isDone) {
-                calculateRoot(item)
+                removeItemFromSp(item)
+                item.workerId = RootsApp.instance.startRootsWorker(item.num, item.lowerBound)
+                observeRootResults(item)
+                addUpdateItemToSp(item)
+
             }
         }
         mld.value = items
     }
 
-    private fun calculateRoot(item: RootItem) {
+    private fun observeRootResults(item: RootItem) {
         // todo: if workerId exists, use it
         RootsApp.instance.workManager.getWorkInfoByIdLiveData(item.workerId)
             .observeForever { workInfo ->
                 if (workInfo == null) return@observeForever
                 when (workInfo.state) {
                     WorkInfo.State.SUCCEEDED -> {
+                        itemsList.remove(item)
                         item.progress = RootItem.DONE
                         item.root =
                             workInfo.outputData.getLong(RootCalculatorWorker.OUTPUT_TAG, item.num)
+                        itemsList.add(item)
+                        addUpdateItemToSp(item)
                         mld.value = items
                     }
                     WorkInfo.State.RUNNING -> {
-                        item.progress =
-                            workInfo.progress.getInt(RootCalculatorWorker.PROGRESS, item.progress)
-                        item.lowerBound =
-                            workInfo.progress.getLong(
-                                RootCalculatorWorker.LOWE_BOUND,
-                                item.lowerBound
-                            )
+                        workInfo.progress.getInt(RootCalculatorWorker.PROGRESS, item.progress)
+                            .let { if (it > item.progress) item.progress = it}
+                        workInfo.progress.getLong(RootCalculatorWorker.LOWER_BOUND, item.lowerBound)
+                            .let { if (it > item.lowerBound) item.lowerBound = it}
+
+                        addUpdateItemToSp(item)
                         mld.value = items
                     }
                     WorkInfo.State.FAILED -> { // handle failure
@@ -70,10 +85,9 @@ class RootsDB : Serializable {
     fun addNewItem(num: Long) {
         val id = RootsApp.instance.startRootsWorker(num, 2L)
         val item = RootItem(num = num, workerId = id)
-        calculateRoot(item)
         itemsList.add(item)
-        Log.d("eilon", "jsoneditemA = ${gson.toJson(item)}")
-        RootsApp.instance.sp.edit().putString(item.workerId.toString(), gson.toJson(item)).apply()
+        addUpdateItemToSp(item)
+        observeRootResults(item)
         mld.value = items
     }
 
@@ -85,6 +99,14 @@ class RootsDB : Serializable {
     fun deleteItem(item: RootItem) {
         itemsList.remove(item)
         mld.value = items
+        removeItemFromSp(item)
+    }
+
+    private fun addUpdateItemToSp(item: RootItem) {
+        RootsApp.instance.sp.edit().putString(item.workerId.toString(), gson.toJson(item)).apply()
+    }
+
+    private fun removeItemFromSp(item: RootItem) {
         RootsApp.instance.sp.edit().remove(item.workerId.toString()).apply()
     }
 }

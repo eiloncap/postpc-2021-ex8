@@ -2,11 +2,8 @@ package il.co.rootsapp
 
 import com.google.gson.*
 import java.lang.reflect.Type
-import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 
 class LocalDateTimeAdapter : JsonDeserializer<LocalDateTime>,
@@ -16,8 +13,10 @@ class LocalDateTimeAdapter : JsonDeserializer<LocalDateTime>,
         type: Type,
         jsonDeserializationContext: JsonDeserializationContext
     ): LocalDateTime {
-        return LocalDateTime.parse(json.asJsonPrimitive.asString, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-
+        return LocalDateTime.parse(
+            json.asJsonPrimitive.asString,
+            DateTimeFormatter.ISO_LOCAL_DATE_TIME
+        )
     }
 
     override fun serialize(

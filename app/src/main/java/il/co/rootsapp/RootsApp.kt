@@ -3,6 +3,7 @@ package il.co.rootsapp
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
@@ -30,9 +31,12 @@ class RootsApp : Application() {
     }
 
     fun startRootsWorker(num: Long, startPoint: Long): UUID {
+        Log.d("eilon", "startRootsWorker got params: $num, $startPoint")
         val workRequest = OneTimeWorkRequest.Builder(RootCalculatorWorker::class.java)
-            .setInputData(Data.Builder().putLong(RootCalculatorWorker.INPUT_START_TAG, startPoint).build())
-            .setInputData(Data.Builder().putLong(RootCalculatorWorker.INPUT_NUM_TAG, num).build())
+            .setInputData(Data.Builder()
+                .putLong(RootCalculatorWorker.INPUT_START_TAG, startPoint)
+                .putLong(RootCalculatorWorker.INPUT_NUM_TAG, num)
+                .build())
             .build()
         workManager.enqueue(workRequest)
         return workRequest.id
